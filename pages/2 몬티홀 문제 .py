@@ -33,69 +33,41 @@ num_simulations = st.sidebar.number_input(
 def run_simulation(strategy_to_switch):
     wins = 0
     for _ in range(num_simulations):
-        # 1. 문 설정 (1번: 자동차, 2,3번: 염소)
         doors = [1, 2, 3]
-        car_door = 1 # 편의상 자동차는 항상 1번에 있다고 가정
-        
-        # 2. 참가자 선택
+        car_door = 1 # 자동차는 항상 1번에 있다고 가정
         player_choice = random.choice(doors)
-        
-        # 3. 진행자가 염소 문 열기
-        # 진행자는 자동차 문과 참가자가 선택한 문을 제외하고 열어야 함
         doors_to_open = [door for door in doors if door != car_door and door != player_choice]
         opened_door = random.choice(doors_to_open)
-        
-        # 4. 참가자의 최종 선택 (전략에 따라)
-        if strategy_to_switch: # 바꾸기 전략
-            # 남은 문 중에서 참가자가 고르지 않았고, 열리지도 않은 문
+        if strategy_to_switch:
             final_choice = [door for door in doors if door != player_choice and door != opened_door][0]
-        else: # 유지하기 전략
+        else:
             final_choice = player_choice
-            
-        # 5. 승리 확인
         if final_choice == car_door:
             wins += 1
-            
     return wins
 
 # --- 실행 버튼 ---
 if st.button("🚀 시뮬레이션 시작!"):
-    # '유지하기' 전략 실행
     stay_wins = run_simulation(strategy_to_switch=False)
-    
-    # '바꾸기' 전략 실행
     switch_wins = run_simulation(strategy_to_switch=True)
-    
-    # --- 결과 표시 ---
     st.header("📊 시뮬레이션 결과")
-    
-    # 데이터 프레임 생성
     results_df = pd.DataFrame({
         '전략': ['선택을 유지하기', '선택을 바꾸기'],
         '승리 횟수': [stay_wins, switch_wins]
     }).set_index('전략')
-    
-    # 승률 계산
     stay_win_rate = round((stay_wins / num_simulations) * 100, 2)
     switch_win_rate = round((switch_wins / num_simulations) * 100, 2)
-    
-    # 컬럼으로 나누어 결과 보여주기
     col1, col2 = st.columns(2)
-    
     with col1:
         st.subheader("선택을 유지했을 때")
         st.metric(label="🏆 승률", value=f"{stay_win_rate}%")
         st.write(f"({num_simulations}번 중 {stay_wins}번 승리)")
-        
     with col2:
         st.subheader("선택을 바꿨을 때")
         st.metric(label="🏆 승률", value=f"{switch_win_rate}%")
         st.write(f"({num_simulations}번 중 {switch_wins}번 승리)")
-        
     st.subheader("📈 전체 결과 비교")
     st.bar_chart(results_df)
-
     st.info("결과가 놀랍지 않나요? 선택을 바꾸는 것이 승리할 확률이 약 **두 배**나 높습니다!")
-
 else:
     st.info("게임 횟수를 설정하고 '시뮬레이션 시작' 버튼을 눌러 결과를 확인해보세요.")
